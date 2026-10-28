@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MK Music Booster Pro</title>
+<style>
+:root{--bg:#090d1b;--panel:#131b30;--panel2:#1b2742;--text:#f4f7ff;--muted:#9eabc7;--accent:#5eead4;--line:#2b3856;--danger:#ff6b6b}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(circle at top,#1c3150,#090d1b 60%);color:var(--text);font-family:system-ui,Arial,sans-serif;min-height:100vh}
+header{max-width:1100px;margin:auto;padding:24px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:center;gap:12px}.logo{width:48px;height:48px;border-radius:15px;display:grid;place-items:center;background:linear-gradient(135deg,#5eead4,#818cf8);color:#07111d;font-weight:900}
+h1{margin:0;font-size:clamp(22px,4vw,30px)}.sub{color:var(--muted);font-size:13px;margin-top:3px}
+main{max-width:1100px;margin:auto;padding:0 18px 35px}
+.layout{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:18px;min-width:0;margin-bottom:16px}
+.card h2{font-size:17px;margin:0 0 14px;display:flex;justify-content:space-between;align-items:center}
+.art{height:180px;border-radius:17px;display:grid;place-items:center;font-size:72px;background:linear-gradient(135deg,#203f60,#4a2864);margin-bottom:18px}
+.song-title{font-size:21px;font-weight:800;overflow-wrap:anywhere}.muted{color:var(--muted);font-size:13px}
+.time{display:flex;justify-content:space-between;color:var(--muted);font-size:12px}
+input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer}
+.controls{display:flex;align-items:center;justify-content:center;gap:13px;margin:16px 0}
+button{border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:10px 13px;border-radius:12px;cursor:pointer;font:inherit;transition:all 0.2s}
+button:hover{border-color:var(--accent)}
+.play{width:60px;height:54px;background:var(--accent);color:#07111d;border:0;font-weight:900;font-size:20px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:10px 0}
+.volume-number{font-weight:800;color:var(--accent);min-width:50px;text-align:right}
+.boost-box{background:var(--panel2);border:1px solid var(--line);border-radius:15px;padding:12px;margin-top:10px}
+.eq-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.eq-control{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px}
+.genre-tags{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+.genre-chip{font-size:11px;background:#172d3f;color:var(--accent);border:1px solid var(--line);padding:5px 10px;border-radius:99px;cursor:pointer}
+.genre-chip:hover,.genre-chip.active{background:var(--accent);color:#07111d;border-color:var(--accent)}
+.notice{border:1px solid #5a4a2c;background:#30291d;color:#f8dba0;padding:10px;border-radius:12px;font-size:12px;line-height:1.45;margin-top:10px}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:13px}.actions button{flex:1}
+#fileInput,#folderInput{display:none}
+.search, select{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;background:#0d1426;color:var(--text);font:inherit;margin-bottom:10px}
+.playlist{display:flex;flex-direction:column;gap:7px;max-height:220px;overflow:auto}
+.song-item{width:100%;display:flex;align-items:center;gap:10px;text-align:left;padding:10px;min-width:0;background:var(--panel2);border:1px solid var(--line);border-radius:10px;color:var(--text);cursor:pointer}
+.song-item.active{border-color:var(--accent);background:#1b3a43}
+.song-icon{font-size:20px}.song-info{min-width:0;flex:1}.song-name{font-weight:650;overflow-wrap:anywhere}.song-meta{color:var(--muted);font-size:12px;margin-top:2px}
+.icon-btn{background:transparent;border:none;color:var(--muted);cursor:pointer;padding:5px;font-size:16px;border-radius:6px}
+.icon-btn:hover{color:var(--accent);background:rgba(255,255,255,0.05)}
+.icon-btn.danger:hover{color:var(--danger)}
+.empty{padding:18px;text-align:center;border:1px dashed var(--line);border-radius:12px;color:var(--muted);font-size:13px;line-height:1.6}
+.smallbtn{padding:7px 10px;font-size:12px}
+footer{max-width:1100px;margin:auto;padding:0 18px 25px;color:var(--muted);font-size:12px;line-height:1.5}
+@media(max-width:760px){.layout{grid-template-columns:1fr}header{padding-top:18px}.art{height:150px}.card{padding:15px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><div class="logo">MK</div><div><h1>MK Music Booster Pro</h1><div class="sub">Phone Music Library • Bass & Treble Equalizer • Genre Playlists</div></div></div>
+  <button id="themeBtn" aria-label="Toggle theme">☀️ Theme</button>
+</header>
+<main>
+<div class="layout">
+  <section class="card">
+    <div class="art">🎧</div>
+    <div class="song-title" id="currentTitle">No song selected</div>
+    <div class="muted" id="currentInfo">Load songs from your phone device storage to begin.</div>
+    <audio id="audio" preload="metadata"></audio>
+    <div style="margin-top:16px">
+      <input type="range" id="seek" min="0" max="1000" value="0" aria-label="Song progress">
+      <div class="time"><span id="elapsed">0:00</span><span id="duration">0:00</span></div>
+    </div>
+    <div class="controls">
+      <button id="shuffleBtn" title="Shuffle">🔀</button>
+      <button id="prevBtn" title="Previous">⏮</button>
+      <button id="playBtn" class="play" title="Play">▶</button>
+      <button id="nextBtn" title="Next">⏭</button>
+      <button id="repeatBtn" title="Repeat">🔁</button>
+    </div>
+
+    <!-- Bass & Treble Equalizer -->
+    <div class="eq-grid">
+      <div class="eq-control">
+        <div class="row" style="margin:0 0 6px"><span class="muted">🎸 Bass</span><strong class="volume-number" id="bassText">0 dB</strong></div>
+        <input type="range" id="bass" min="-20" max="20" value="0" step="1">
+      </div>
+      <div class="eq-control">
+        <div class="row" style="margin:0 0 6px"><span class="muted">🎹 Treble</span><strong class="volume-number" id="trebleText">0 dB</strong></div>
+        <input type="range" id="treble" min="-20" max="20" value="0" step="1">
+      </div>
+    </div>
+
+    <!-- Volume & Booster -->
+    <div class="row" style="margin-top:12px"><label for="volume">Volume</label><strong class="volume-number" id="volumeText">100%</strong></div>
+    <input type="range" id="volume" min="0" max="200" value="100">
+    <div class="boost-box">
+      <div class="boost-title" style="display:flex;justify-content:space-between;align-items:center">
+        <strong>🚀 Volume Booster</strong><span class="pill" id="boostLabel">100%</span>
+      </div>
+      <input type="range" id="boost" min="100" max="200" value="100" style="margin-top:8px">
+    </div>
+
+    <!-- Genre Selector for Current Song -->
+    <div style="margin-top:14px">
+      <div class="muted" style="margin-bottom:6px">Assign Genre / Vibe:</div>
+      <div class="genre-tags" id="songGenreTags">
+        <span class="genre-chip" data-genre="Hip Hop">🎤 Hip Hop</span>
+        <span class="genre-chip" data-genre="Folk">🪕 Folk</span>
+        <span class="genre-chip" data-genre="Pop">✨ Pop</span>
+        <span class="genre-chip" data-genre="Rock">🎸 Rock</span>
+        <span class="genre-chip" data-genre="Electronic">⚡ Electronic</span>
+        <span class="genre-chip" data-genre="Acoustic">🎻 Acoustic</span>
+      </div>
+    </div>
+  </section>
+  
+  <div>
+    <section class="card">
+      <h2>🎵 Phone Music Library</h2>
+      <div class="actions">
+        <button id="addBtn">＋ Add Phone Songs</button>
+        <button id="folderBtn">📁 Choose Phone Folder</button>
+        <input id="fileInput" type="file" accept="audio/*,.mp3,.wav,.ogg,.m4a,.aac,.flac" multiple>
+        <input id="folderInput" type="file" accept="audio/*,.mp3,.wav,.ogg,.m4a,.aac,.flac" webkitdirectory multiple>
+      </div>
+      <input class="search" id="search" type="search" placeholder="Search phone library…" aria-label="Search songs">
+      <div class="row"><span class="muted" id="songCount">0 songs</span><button id="clearBtn" class="smallbtn">Clear library</button></div>
+      <div id="playlist" class="playlist"><div class="empty">🎶 No phone tracks loaded yet.<br>Tap <b>Add Phone Songs</b> or <b>Choose Phone Folder</b> to browse phone files.</div></div>
+    </section>
+
+    <section class="card">
+      <h2>
+        <span>📂 Playlists & Genres</span>
+        <button id="deletePlaylistBtn" class="smallbtn danger" style="background:#3a1c1c; border-color:#5a2b2b; color:#ff8b8b; display:none;">Delete Playlist</button>
+      </h2>
+      <div class="row" style="margin-top:0">
+        <select id="playlistSelect">
+          <option value="all">📁 All Phone Songs (Default)</option>
+          <option disabled>--- Genres / Beats ---</option>
+          <option value="Hip Hop">🎤 Hip Hop</option>
+          <option value="Folk">🪕 Folk</option>
+          <option value="Pop">✨ Pop</option>
+          <option value="Rock">🎸 Rock</option>
+          <option value="Electronic">⚡ Electronic</option>
+          <option value="Acoustic">🎻 Acoustic</option>
+        </select>
+      </div>
+      <div class="actions" style="margin-bottom:0">
+        <button id="createPlaylistBtn">＋ New Playlist</button>
+        <button id="addToPlaylistBtn" class="smallbtn">＋ Add Song to Playlist</button>
+      </div>
+    </section>
+  </div>
+</div>
+</main>
+<footer>MK Music Booster Pro reads audio files directly from your phone storage, allows real-time Bass & Treble tuning, and organizes songs by custom playlists and beats/genres.</footer>
+
+<script>
+const audio=document.getElementById('audio');
+const fileInput=document.getElementById('fileInput');
+const folderInput=document.getElementById('folderInput');
+const playlistContainer=document.getElementById('playlist');
+const seek=document.getElementById('seek');
+const playlistSelect=document.getElementById('playlistSelect');
+const deletePlaylistBtn=document.getElementById('deletePlaylistBtn');
+
+let tracks=[], currentQueue=[], index=-1, shuffle=false, repeat=false, seeking=false;
+let audioCtx=null, sourceNode=null, gainNode=null, bassFilter=null, trebleFilter=null, playlists={}, songGenres={}, db=null;
+
+// IndexedDB Persistent Storage
+function initDB(){
+  return new Promise((resolve,reject)=>{
+    const request=indexedDB.open('mkMusicProDB',4);
+    request.onerror=()=>reject(request.error);
+    request.onsuccess=()=>{db=request.result;resolve(db)};
+    request.onupgradeneeded=(e)=>{
+      const database=e.target.result;
+      if(!database.objectStoreNames.contains('tracks'))database.createObjectStore('tracks',{keyPath:'id',autoIncrement:true});
+      if(!database.objectStoreNames.contains('playlists'))database.createObjectStore('playlists',{keyPath:'name'});
+      if(!database.objectStoreNames.contains('genres'))database.createObjectStore('genres',{keyPath:'id'});
+    };
+  });
+}
+
+function saveTrackToDB(file){
+  return new Promise((resolve)=>{
+    const tx=db.transaction('tracks','readwrite');
+    const store=tx.objectStore('tracks');
+    const req=store.add({name:file.name, file:file, lastModified:file.lastModified, size:file.size});
+    req.onsuccess=(e)=>resolve(e.target.result);
+  });
+}
+
+function loadTracksFromDB(){
+  return new Promise((resolve)=>{
+    if(!db)return resolve([]);
+    const tx=db.transaction('tracks','readonly');
+    const store=tx.objectStore('tracks');
+    const request=store.getAll();
+    request.onsuccess=()=>{
+      tracks=request.result.map(item=>({
+        id: item.id,
+        name: item.name,
+        file: item.file,
+        url: URL.createObjectURL(item.file)
+      }));
+      resolve(tracks);
+    };
+  });
+}
+
+function clearDB(){
+  return new Promise((resolve)=>{
+    const tx=db.transaction(['tracks','playlists','genres'],'readwrite');
+    tx.objectStore('tracks').clear();
+    tx.objectStore('playlists').clear();
+    tx.objectStore('genres').clear();
+    tx.oncomplete=()=>resolve();
+  });
+}
+
+function savePlaylistsToDB(){
+  if(!db)return;
+  const tx=db.transaction('playlists','readwrite');
+  const store=tx.objectStore('playlists');
+  store.clear();
+  for(let name in playlists){
+    store.put({name: name, trackIds: playlists[name]});
+  }
+}
+
+function loadPlaylistsFromDB(){
+  return new Promise((resolve)=>{
+    if(!db)return resolve();
+    const tx=db.transaction('playlists','readonly');
+    const store=tx.objectStore('playlists');
+    const request=store.getAll();
+    request.onsuccess=()=>{
+      playlists={};
+      request.result.forEach(p=>{playlists[p.name]=p.trackIds;});
+      if(Object.keys(playlists).length===0){
+        playlists['⭐ Favorites']=[];
+        playlists['🔥 Party Mix']=[];
+        savePlaylistsToDB();
+      }
+      updatePlaylistDropdown();
+      resolve();
+    };
+  });
+}
+
+function saveGenresToDB(){
+  if(!db)return;
+  const tx=db.transaction('genres','readwrite');
+  const store=tx.objectStore('genres');
+  store.clear();
+  for(let id in songGenres){
+    store.put({id: Number(id), genre: songGenres[id]});
+  }
+}
+
+function loadGenresFromDB(){
+  return new Promise((resolve)=>{
+    if(!db)return resolve();
+    const tx=db.transaction('genres','readonly');
+    const store=tx.objectStore('genres');
+    const request=store.getAll();
+    request.onsuccess=()=>{
+      songGenres={};
+      request.result.forEach(item=>{songGenres[item.id]=item.genre;});
+      resolve();
+    };
+  });
+}
+
+function fmt(t){if(!Number.isFinite(t)||t<0)return '0:00';return Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0')}
+
+// Web Audio API with Equalizer (Bass & Treble) and Volume Booster
+async function initAudioPipeline(){
+  if(audioCtx)return true;
+  const Ctx=window.AudioContext||window.webkitAudioContext;
+  if(!Ctx)return false;
+  try{
+    audioCtx=new Ctx();
+    sourceNode=audioCtx.createMediaElementSource(audio);
+    
+    // Bass Filter (LowShelf at 200Hz)
+    bassFilter=audioCtx.createBiquadFilter();
+    bassFilter.type='lowshelf';
+    bassFilter.frequency.value=200;
+    bassFilter.gain.value=Number(document.getElementById('bass').value);
+
+    // Treble Filter (HighShelf at 3000Hz)
+    trebleFilter=audioCtx.createBiquadFilter();
+    trebleFilter.type='highshelf';
+    trebleFilter.frequency.value=3000;
+    trebleFilter.gain.value=Number(document.getElementById('treble').value);
+
+    // Gain / Volume Booster Node
+    gainNode=audioCtx.createGain();
+    setVolume();
+
+    // Connect nodes: source -> bass -> treble -> gain -> destination
+    sourceNode.connect(bassFilter);
+    bassFilter.connect(trebleFilter);
+    trebleFilter.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    return true;
+  }catch(e){console.warn(e);return false}
+}
+
+function setVolume(){
+ const v=Number(document.getElementById('volume').value), b=Number(document.getElementById('boost').value);
+ document.getElementById('volumeText').textContent=v+'%';
+ document.getElementById('boostLabel').textContent=b+'%';
+ audio.volume=Math.min(1,v/100);
+ if(gainNode)gainNode.gain.value=(v/100)*(b/100);
+}
+
+document.getElementById('bass').oninput=()=>{
+  const val=document.getElementById('bass').value;
+  document.getElementById('bassText').textContent=val+' dB';
+  if(bassFilter)bassFilter.gain.value=Number(val);
+};
+
+document.getElementById('treble').oninput=()=>{
+  const val=document.getElementById('treble').value;
+  document.getElementById('trebleText').textContent=val+' dB';
+  if(trebleFilter)trebleFilter.gain.value=Number(val);
+};
+
+function getActiveQueue(){
+  const sel=playlistSelect.value;
+  if(sel==='all')return tracks;
+  // Check if selected is a genre
+  const genresList=['Hip Hop','Folk','Pop','Rock','Electronic','Acoustic'];
+  if(genresList.includes(sel)){
+    return tracks.filter(t=>songGenres[t.id]===sel);
+  }
+  // Custom Playlist
+  if(playlists[sel]){
+    const allowedIds=new Set(playlists[sel]);
+    return tracks.filter(t=>allowedIds.has(t.id));
+  }
+  return tracks;
+}
+
+function updateCurrent(){
+ currentQueue=getActiveQueue();
+ const t=tracks[index];
+ 
+ document.getElementById('currentTitle').textContent=t?t.name:'No song selected';
+ document.getElementById('currentInfo').textContent=t?(t.file.webkitRelativePath||'Phone audio file'):'Load songs from your phone storage to begin.';
+ document.getElementById('songCount').textContent=tracks.length+' song'+(tracks.length===1?'':'s');
+ 
+ // Highlight active genre chip
+ const activeGenre=t?songGenres[t.id]:null;
+ document.querySelectorAll('.genre-chip').forEach(chip=>{
+   chip.classList.toggle('active',chip.dataset.genre===activeGenre);
+ });
+
+ renderPlaylist();
+}
+
+function renderPlaylist(){
+ const q=document.getElementById('search').value.trim().toLowerCase();
+ currentQueue=getActiveQueue();
+ playlistContainer.innerHTML='';
+ 
+ const shown=currentQueue.filter(t=>t.name.toLowerCase().includes(q));
+ if(!shown.length){
+  const e=document.createElement('div');e.className='empty';e.textContent=currentQueue.length?'No songs match your search.':'🎶 No phone tracks found here. Tap "Add Phone Songs" or pick another playlist/genre.';playlistContainer.appendChild(e);return;
+ }
+ 
+ shown.forEach((t)=>{
+  const realIndex=tracks.findIndex(tr=>tr.id===t.id);
+  const btn=document.createElement('div');btn.className='song-item'+(realIndex===index?' active':'');
+  
+  const mainClick=document.createElement('div');mainClick.style.cssText="display:flex;align-items:center;gap:10px;flex:1;min-width:0;cursor:pointer;";
+  const icon=document.createElement('span');icon.className='song-icon';icon.textContent=(realIndex===index&&!audio.paused)?'🔊':'🎵';
+  const info=document.createElement('span');info.className='song-info';
+  const name=document.createElement('div');name.className='song-name';name.textContent=t.name;
+  const genreLabel=songGenres[t.id]?' • ['+songGenres[t.id]+']':'';
+  const meta=document.createElement('div');meta.className='song-meta';meta.textContent=(realIndex===index?'Now selected':'Click to play')+genreLabel;
+  info.append(name,meta);mainClick.append(icon,info);
+  mainClick.onclick=()=>loadTrack(realIndex,true);
+  
+  btn.append(mainClick);
+
+  const activeSel=playlistSelect.value;
+  const genresList=['Hip Hop','Folk','Pop','Rock','Electronic','Acoustic'];
+  if(activeSel!=='all'&&!genresList.includes(activeSel)){
+    const rmBtn=document.createElement('button');
+    rmBtn.className='icon-btn danger';
+    rmBtn.title='Remove from playlist';
+    rmBtn.textContent='✕';
+    rmBtn.onclick=(e)=>{
+      e.stopPropagation();
+      playlists[activeSel]=playlists[activeSel].filter(id=>id!==t.id);
+      savePlaylistsToDB();
+      renderPlaylist();
+    };
+    btn.append(rmBtn);
+  }
+
+  playlistContainer.appendChild(btn);
+ });
+}
+
+function loadTrack(i,autoplay){
+ if(i<0||i>=tracks.length)return;
+ index=i;audio.src=tracks[i].url;audio.load();seek.value=0;
+ document.getElementById('elapsed').textContent='0:00';document.getElementById('duration').textContent='0:00';
+ updateCurrent();
+ if(autoplay){
+   initAudioPipeline().then(()=> {
+     if(audioCtx.state==='suspended')audioCtx.resume();
+     audio.play().then(()=>{document.getElementById('playBtn').textContent='Ⅱ';renderPlaylist()}).catch(()=>{});
+   });
+ }
+}
+
+async function addFiles(files){
+ const incoming=Array.from(files||[]).filter(f=>f.type.startsWith('audio/')||/\.(mp3|wav|ogg|m4a|aac|flac|opus|aiff?)$/i.test(f.name));
+ const known=new Set(tracks.map(t=>t.name+'|'+t.size+'|'+t.lastModified));
+ 
+ for(const file of incoming){
+   const key=file.name+'|'+file.size+'|'+file.lastModified;
+   if(!known.has(key)){
+     await saveTrackToDB(file);
+     known.add(key);
+   }
+ }
+ await loadTracksFromDB();
+ if(index===-1&&tracks.length)loadTrack(0,false);else updateCurrent();
+}
+
+function playPause(){
+ if(index===-1){if(currentQueue.length){const realIdx=tracks.findIndex(t=>t.id===currentQueue[0].id);loadTrack(realIdx,true);}else fileInput.click();return}
+ initAudioPipeline().then(()=>{
+   if(audioCtx.state==='suspended')audioCtx.resume();
+   if(audio.paused){audio.play().then(()=>{document.getElementById('playBtn').textContent='Ⅱ';renderPlaylist()}).catch(()=>{})}
+   else audio.pause();
+ });
+}
+
+function next(){
+ currentQueue=getActiveQueue();
+ if(!currentQueue.length)return;
+ const currentActiveIndex=currentQueue.findIndex(t=>tracks[index]&&t.id===tracks[index].id);
+ let nextQueueIndex=shuffle&&currentQueue.length>1?Math.floor(Math.random()*currentQueue.length):(currentActiveIndex+1)%currentQueue.length;
+ if(repeat&&currentActiveIndex>=0)nextQueueIndex=currentActiveIndex;
+ 
+ const targetTrack=currentQueue[nextQueueIndex];
+ const realIdx=tracks.findIndex(t=>t.id===targetTrack.id);
+ loadTrack(realIdx,true);
+}
+
+function previous(){
+ currentQueue=getActiveQueue();
+ if(!currentQueue.length)return;
+ if(audio.currentTime>3){audio.currentTime=0;return}
+ const currentActiveIndex=currentQueue.findIndex(t=>tracks[index]&&t.id===tracks[index].id);
+ const prevQueueIndex=(currentActiveIndex-1+currentQueue.length)%currentQueue.length;
+ const targetTrack=currentQueue[prevQueueIndex];
+ const realIdx=tracks.findIndex(t=>t.id===targetTrack.id);
+ loadTrack(realIdx,true);
+}
+
+function updatePlaylistDropdown(){
+ const currentVal=playlistSelect.value;
+ playlistSelect.innerHTML=`
+   <option value="all">📁 All Phone Songs (Default)</option>
+   <option disabled>--- Genres / Beats ---</option>
+   <option value="Hip Hop">🎤 Hip Hop</option>
+   <option value="Folk">🪕 Folk</option>
+   <option value="Pop">✨ Pop</option>
+   <option value="Rock">🎸 Rock</option>
+   <option value="Electronic">⚡ Electronic</option>
+   <option value="Acoustic">🎻 Acoustic</option>
+   <option disabled>--- Custom Playlists ---</option>
+ `;
+ for(let name in playlists){
+   const opt=document.createElement('option');
+   opt.value=name;
+   opt.textContent=`🎵 ${name} (${playlists[name].length})`;
+   playlistSelect.appendChild(opt);
+ }
+ playlistSelect.value=playlists[currentVal]||['all','Hip Hop','Folk','Pop','Rock','Electronic','Acoustic'].includes(currentVal)?currentVal:'all';
+ 
+ const genresList=['Hip Hop','Folk','Pop','Rock','Electronic','Acoustic'];
+ deletePlaylistBtn.style.display=(playlistSelect.value==='all'||genresList.includes(playlistSelect.value))?'none':'inline-block';
+}
+
+// Genre Chip Click Handler
+document.querySelectorAll('.genre-chip').forEach(chip=>{
+  chip.onclick=()=>{
+    if(index===-1||!tracks[index]){alert('Please play or select a song first!');return;}
+    const genre=chip.dataset.genre;
+    const trackId=tracks[index].id;
+    songGenres[trackId]=genre;
+    saveGenresToDB();
+    updateCurrent();
+  };
+});
+
+// Playlist UI Actions
+document.getElementById('createPlaylistBtn').onclick=()=>{
+ const name=prompt('Enter new playlist name:');
+ if(!name||!name.trim())return;
+ const cleanName=name.trim();
+ if(playlists[cleanName]||['all','Hip Hop','Folk','Pop','Rock','Electronic','Acoustic'].includes(cleanName)){alert('Playlist/Genre already exists!');return;}
+ playlists[cleanName]=[];
+ savePlaylistsToDB();
+ updatePlaylistDropdown();
+ playlistSelect.value=cleanName;
+ updateCurrent();
+};
+
+document.getElementById('addToPlaylistBtn').onclick=()=>{
+ if(index===-1||!tracks[index]){alert('Please play or select a song first!');return;}
+ const activeNames=Object.keys(playlists);
+ if(!activeNames.length){alert('Please create a custom playlist first using "＋ New Playlist"!');return;}
+ 
+ const targetName=prompt(`Add current song ("${tracks[index].name}") to custom playlist:`, activeNames[0]);
+ if(!targetName)return;
+ if(!playlists[targetName]){alert('Playlist not found!');return;}
+ 
+ const trackId=tracks[index].id;
+ if(!playlists[targetName].includes(trackId)){
+   playlists[targetName].push(trackId);
+   savePlaylistsToDB();
+   updatePlaylistDropdown();
+   renderPlaylist();
+   alert(`Added to "${targetName}" successfully!`);
+ }else{
+   alert('Song is already in this playlist.');
+ }
+};
+
+deletePlaylistBtn.onclick=()=>{
+ const sel=playlistSelect.value;
+ const genresList=['Hip Hop','Folk','Pop','Rock','Electronic','Acoustic'];
+ if(sel==='all'||genresList.includes(sel)||!playlists[sel])return;
+ if(confirm(`Are you sure you want to delete playlist "${sel}"?`)){
+   delete playlists[sel];
+   savePlaylistsToDB();
+   playlistSelect.value='all';
+   updatePlaylistDropdown();
+   updateCurrent();
+ }
+};
+
+playlistSelect.onchange=()=>{
+ const sel=playlistSelect.value;
+ const genresList=['Hip Hop','Folk','Pop','Rock','Electronic','Acoustic'];
+ deletePlaylistBtn.style.display=(sel==='all'||genresList.includes(sel))?'none':'inline-block';
+ updateCurrent();
+};
+
+document.getElementById('addBtn').onclick=()=>fileInput.click();
+document.getElementById('folderBtn').onclick=()=>folderInput.click();
+fileInput.onchange=()=>{addFiles(fileInput.files);fileInput.value=''};
+folderInput.onchange=()=>{addFiles(folderInput.files);folderInput.value=''};
+document.getElementById('playBtn').onclick=playPause;
+document.getElementById('nextBtn').onclick=next;
+document.getElementById('prevBtn').onclick=previous;
+document.getElementById('shuffleBtn').onclick=()=>{shuffle=!shuffle;document.getElementById('shuffleBtn').style.borderColor=shuffle?'var(--accent)':'var(--line)'};
+document.getElementById('repeatBtn').onclick=()=>{repeat=!repeat;document.getElementById('repeatBtn').style.borderColor=repeat?'var(--accent)':'var(--line)'};
+document.getElementById('volume').oninput=setVolume;
+document.getElementById('boost').oninput=()=>{setVolume();if(Number(document.getElementById('boost').value)>100)initAudioPipeline()};
+document.getElementById('search').oninput=renderPlaylist;
+
+document.getElementById('clearBtn').onclick=async()=>{
+ if(!confirm('Are you sure you want to clear your stored phone library and playlists?'))return;
+ audio.pause();audio.removeAttribute('src');audio.load();
+ await clearDB();
+ tracks=[];index=-1;playlists={};songGenres={};
+ updatePlaylistDropdown();
+ document.getElementById('playBtn').textContent='▶';seek.value=0;document.getElementById('elapsed').textContent='0:00';document.getElementById('duration').textContent='0:00';updateCurrent();
+};
+
+audio.addEventListener('play',()=>{document.getElementById('playBtn').textContent='Ⅱ';renderPlaylist()});
+audio.addEventListener('pause',()=>{document.getElementById('playBtn').textContent='▶';renderPlaylist()});
+audio.addEventListener('loadedmetadata',()=>document.getElementById('duration').textContent=fmt(audio.duration));
+audio.addEventListener('timeupdate',()=>{
+ document.getElementById('elapsed').textContent=fmt(audio.currentTime);
+ if(!seeking&&Number.isFinite(audio.duration)&&audio.duration>0)seek.value=String(audio.currentTime/audio.duration*1000);
+});
+audio.addEventListener('ended',()=>{if(repeat){audio.currentTime=0;audio.play()}else next()});
+seek.addEventListener('input',()=>{seeking=true;if(Number.isFinite(audio.duration))document.getElementById('elapsed').textContent=fmt(Number(seek.value)/1000*audio.duration)});
+seek.addEventListener('change',()=>{if(Number.isFinite(audio.duration))audio.currentTime=Number(seek.value)/1000*audio.duration;seeking=false});
+
+document.getElementById('themeBtn').onclick=()=>{
+ const light=document.body.classList.toggle('light');
+ document.body.style.background=light?'#edf2fb':'radial-gradient(circle at top,#1c3150,#090d1b 60%)';
+ document.body.style.color=light?'#172033':'#f4f7ff';
+ document.querySelectorAll('.card').forEach(c=>{c.style.background=light?'#fff':'';c.style.borderColor=light?'#dce3ef':''});
+};
+
+// Initialize App & Storage
+initDB().then(async()=>{
+  await loadTracksFromDB();
+  await loadPlaylistsFromDB();
+  await loadGenresFromDB();
+  setVolume();
+  updateCurrent();
+}).catch(err=>console.error('Failed to initialize database:', err));
+</script>
+</body>
+</html>
